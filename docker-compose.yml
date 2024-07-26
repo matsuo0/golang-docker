@@ -1,13 +1,45 @@
-version: '3'
+version: '3.4'
 
 services:
   go:
     container_name: go-api-server
     platform: linux/x86_64
     hostname: localhost
+    ports:
+      - 2345:2345 #　デバッグ用のポート
     tty: true
     build:
       context: .
       dockerfile: ./docker/go/Dockerfile
     volumes:
       - ./back:/go/src/app
+      - ./.air.toml:/go/src/app/.air.toml # airの設定ファイル
+    networks:
+      - private-net
+
+  postgresql:
+    container_name: api_db_postgresql
+    platform: linux/x86_64
+    hostname: localhost
+    ports:
+      - ${DB_PORT}:5432
+    build:
+      context: .
+      dockerfile: ./docker/postgresql/Dockerfile
+    environment:
+      - POSTGRES_DB=${DB_DATABASE}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - db-store:/var/lib/postgresql/data
+      - ./back/database/init:/docker-entrypoint-initdb.d # DBを初期化
+    networks:
+      - private-net
+
+volumes:
+  db-store:
+    driver: local
+
+networks:
+  private-net:
+    driver: bridge

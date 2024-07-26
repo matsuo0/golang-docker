@@ -10,6 +10,12 @@ COPY ./back .
 RUN apk upgrade --update && \
     apk --no-cache add git gcc musl-dev
 
+RUN go install github.com/go-delve/delve/cmd/dlv@latest
+
+# ホットリロード用のツール
+RUN go install github.com/air-verse/air@latest
+# airツールを起動します
+CMD ["air", "-c", ".air.toml"]
 
 # RUN apt-get update && apt-get install -y git
 
